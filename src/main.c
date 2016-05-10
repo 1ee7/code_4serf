@@ -32,7 +32,7 @@ uint64_t microsSinceEpoch();
 //======================================
 // struct sockaddr_in gcAddr; 
 
-int udpinit(char *target_addr,struct sockaddr_in a, struct sockaddr_in b)  //a---gcAddr   b---locAddr
+int udpinit(char *target_addr,struct sockaddr_in &a, struct sockaddr_in &b)  //a---gcAddr   b---locAddr
 {
    char target_ip[100];
    //===
