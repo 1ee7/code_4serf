@@ -1,0 +1,1 @@
+gcc main.c wiringSerial.c -o main
