@@ -31,7 +31,7 @@
 #include "udpinit.h"
 #include "global.h"
 
-char * target_ip="192.168.42.129"
+char * target_ip="192.168.42.129";
 //#define BUFFER_LENGTH 2041 // minimum buffer size that can be used with qnx (I don't know why)
 //uint64_t microsSinceEpoch();
 
@@ -50,7 +50,7 @@ int main ()
 
  //  float position[6] = {};
    uint8_t buf[BUFFER_LENGTH];
-  // int bytes_sent;
+   int bytes_sent;
    uint16_t len;
    int i = 0;
    mavlink_message_t msg;
