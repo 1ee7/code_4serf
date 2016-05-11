@@ -26,7 +26,8 @@
 //============================================
 #include "wiringSerial.h"
 #include "../lib/mavlink/1.0/common/mavlink.h"
-#include "../lib/mavlink/1.0/mavlink_helpers.h"
+// #include "../lib/mavlink/1.0/mavlink_helpers.h"
+#include "mavlinkParse.h"
 
 #include "udpinit.h"
 #include "global.h"
