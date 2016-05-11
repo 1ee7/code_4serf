@@ -55,6 +55,7 @@ int main ()
    uint16_t len;
    int i = 0;
    mavlink_message_t msg;
+   mavlink_status_t mstatus;
    unsigned int temp = 0;
    int chan = 0;
    int udpsock=udpinit(target_ip,&gcAddr,&locAddr);
@@ -73,7 +74,7 @@ int main ()
        uint8_t byte=serialGetchar(fd);
 
 
-     if (mavlink_parse_char(chan, byte, &msg))
+     if (mavlink_parse_char(chan, byte, &msg，&mstatus))
       {
        printf("Received message with ID %d, sequence: %d from component %d of system %d", msg.msgid, msg.seq, msg.compid, msg.sysid);
       }
