@@ -32,7 +32,7 @@ uint64_t microsSinceEpoch();
 //======================================
 // struct sockaddr_in gcAddr; 
 
-int udpinit(char *target_addr,struct sockaddr_in &a, struct sockaddr_in &b)  //a---gcAddr   b---locAddr
+int udpinit(char *target_addr,struct sockaddr_in *a, struct sockaddr_in *b)  //a---gcAddr   b---locAddr
 {
    char target_ip[100];
    //===
@@ -71,13 +71,13 @@ int udpinit(char *target_addr,struct sockaddr_in &a, struct sockaddr_in &b)  //a
     }*/
   
   
-  memset(&b, 0, sizeof(b));
-  b.sin_family = AF_INET;
-  b.sin_addr.s_addr = INADDR_ANY;
-  b.sin_port = htons(14551);
+  memset(b, 0, sizeof(*b));
+  b->sin_family = AF_INET;
+  b->sin_addr.s_addr = INADDR_ANY;
+  b->sin_port = htons(14551);
   
   /* Bind the socket to port 14551 - necessary to receive packets from qgroundcontrol */ 
-  if (-1 == bind(sock,(struct sockaddr *)&b, sizeof(struct sockaddr)))
+  if (-1 == bind(sock,(struct sockaddr *)b, sizeof(struct sockaddr)))
     {
     perror("error bind failed");
     close(sock);
@@ -95,10 +95,10 @@ int udpinit(char *target_addr,struct sockaddr_in &a, struct sockaddr_in &b)  //a
     }
   
   
-  memset(&a, 0, sizeof(a));
-  a.sin_family = AF_INET;
-  a.sin_addr.s_addr = inet_addr(target_ip);
-  a.sin_port = htons(14550);
+  memset(a, 0, sizeof(*a));
+  a->sin_family = AF_INET;
+  a->sin_addr.s_addr = inet_addr(target_ip);
+  a->sin_port = htons(14550);
 
 
   return sock;
@@ -170,7 +170,7 @@ int main ()
          {
           mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
           len = mavlink_msg_to_send_buffer(buf, &msg);
-          bytes_sent = sendto(sock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
+          bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
         }
 
 //         printf (" -> %3x", serialGetchar (fd)) ;

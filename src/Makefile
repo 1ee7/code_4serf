@@ -3,8 +3,8 @@
 main: main.o wiringSerial.o
 	gcc main.o wiringSerial.o -o main
 
-main.o: main.c  wiringSerial.h
+main.o: main.c 
 	gcc -c main.c
 
-wiringSerial.o: wiringSerial.c wiringSerial.h
+wiringSerial.o: wiringSerial.c
 	gcc -c wiringSerial.c 
