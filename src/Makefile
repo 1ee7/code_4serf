@@ -8,3 +8,9 @@ main.o: main.c
 
 wiringSerial.o: wiringSerial.c
 	gcc -c wiringSerial.c 
+
+
+clean:
+	@echo "cleanning project"
+	rm main *.o
+	@echo "clean completed"
