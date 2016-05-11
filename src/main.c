@@ -31,7 +31,7 @@
 
 
 
-//#define BUFFER_LENGTH 2041 // minimum buffer size that can be used with qnx (I don't know why)
+#define BUFFER_LENGTH 2041 // minimum buffer size that can be used with qnx (I don't know why)
 //uint64_t microsSinceEpoch();
 //======================================
 // struct sockaddr_in gcAddr; 

@@ -1,6 +1,6 @@
 
 
-main: main.o wiringSerial.o
+main: main.o wiringSerial.o udpinit.o
 	gcc main.o wiringSerial.o -o main
 
 main.o: main.c 
@@ -8,6 +8,10 @@ main.o: main.c
 
 wiringSerial.o: wiringSerial.c
 	gcc -c wiringSerial.c 
+
+udpinit.o: udpinit.c
+	gcc -c udpinit.c
+
 
 
 clean:
