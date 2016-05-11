@@ -1,4 +1,5 @@
 
+
 main: main.o wiringSerial.o
 	gcc main.o wiringSerial.o -o main
 
