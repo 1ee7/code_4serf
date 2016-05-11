@@ -26,8 +26,8 @@
 //============================================
 #include "wiringSerial.h"
 #include "../lib/mavlink/1.0/common/mavlink.h"
-// #include "../lib/mavlink/1.0/mavlink_helpers.h"
-#include "mavlinkParse.h"
+#include "../lib/mavlink/1.0/mavlink_helpers.h"
+//#include "mavlinkParse.h"
 
 #include "udpinit.h"
 #include "global.h"
@@ -72,12 +72,10 @@ int main ()
     while (serialDataAvail (fd))
    {
        uint8_t byte=serialGetchar(fd);
-
-
-     if (mavlink_parse_char(chan, byte, &msg，&mstatus))
-      {
-       printf("Received message with ID %d, sequence: %d from component %d of system %d", msg.msgid, msg.seq, msg.compid, msg.sysid);
-      }
+       if(mavlink_parse_char(chan,byte,&msg,&mstatus))
+       {
+          printf("Received message with ID %d, sequence: %d from component %d of system %d \n", msg.msgid, msg.seq, msg.compid, msg.sysid);
+        }
  
        if(byte == 254)
        {
