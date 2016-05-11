@@ -165,14 +165,18 @@ int main ()
 
        while (serialDataAvail (fd))
        {
-         rec=serialGetchar(fd);
+          rec=serialGetchar(fd);
+  //        printf(" %x ",rec);
+   //       serialPutchar(fd, rec & 0xff );          
+  //        bytes_sent = sendto(udpsock,&rec, 1, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
+/*
          if( 254 == rec )
          {
           mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
           len = mavlink_msg_to_send_buffer(buf, &msg);
           bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
         }
-
+*/
 //         printf (" -> %3x", serialGetchar (fd)) ;
  //        fflush (stdout) ;
        }
