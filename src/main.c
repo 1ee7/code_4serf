@@ -27,49 +27,25 @@
 
 //============================================
 #include "../lib/mavlink/1.0/common/mavlink.h"
-#define BUFFER_LENGTH 2041 // minimum buffer size that can be used with qnx (I don't know why)
-uint64_t microsSinceEpoch();
+#include "udpinit.h"
+
+
+
+//#define BUFFER_LENGTH 2041 // minimum buffer size that can be used with qnx (I don't know why)
+//uint64_t microsSinceEpoch();
 //======================================
 // struct sockaddr_in gcAddr; 
-
+#if 0
 int udpinit(char *target_addr,struct sockaddr_in *a, struct sockaddr_in *b)  //a---gcAddr   b---locAddr
 {
    char target_ip[100];
-   //===
-  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  //struct sockaddr_in gcAddr; 
- // struct sockaddr_in locAddr;
-  //==s
- //===== 
+   int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+ 
   ssize_t recsize;
-  socklen_t fromlen;
-  //int bytes_sent;
- // mavlink_message_t msg;
- // uint16_t len;
-  //int i = 0;
-  //int success = 0;
-  //unsigned int temp = 0;
-  
-  // Check if --help flag was used
- /* if ((argc == 2) && (strcmp(argv[1], help) == 0))
-    {
-    printf("\n");
-    printf("\tUsage:\n\n");
-    printf("\t");
-    printf("%s", argv[0]);
-    printf(" <ip address of QGroundControl>\n");
-    printf("\tDefault for localhost: udp-server 127.0.0.1\n\n");
-    exit(EXIT_FAILURE);
-    }*/
-  
+  socklen_t fromlen;  
   
   // Change the target ip if parameter was given
   strcpy(target_ip, target_addr);
- /* if (argc == 2)
-    {
-    strcpy(target_ip, argv[1]);
-    }*/
-  
   
   memset(b, 0, sizeof(*b));
   b->sin_family = AF_INET;
@@ -99,15 +75,10 @@ int udpinit(char *target_addr,struct sockaddr_in *a, struct sockaddr_in *b)  //a
   a->sin_family = AF_INET;
   a->sin_addr.s_addr = inet_addr(target_ip);
   a->sin_port = htons(14550);
-
-
-  return sock;
-  
+  return sock;  
 
 }
-
-
-
+#endif
 
 int main ()
 {
@@ -130,58 +101,31 @@ int main ()
    mavlink_message_t msg;
    unsigned int temp = 0;
 
-  int udpsock=udpinit("192.168.42.129",&gcAddr,&locAddr);
+   int udpsock=udpinit("192.168.42.129",&gcAddr,&locAddr);
   //===============================
 
   if ((fd = serialOpen ("/dev/ttyAMA0", 57600)) < 0)
   {
     fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
     return 1 ;
-  }
+  } 
 
-  /*if (wiringPiSetup () == -1)
-  {
-    fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
-    return 1 ;
-  }
-*/
-  //nextTime = millis () + 300 ;
-
- /* for (count = 0 ; count < 256 ; )
-  {
-    if (millis () > nextTime)
-    {
-      printf ("\nOut: %3d: ", count) ;
-      fflush (stdout) ;
-      serialPutchar (fd, count) ;
-      nextTime += 300 ;
-      ++count ;
-    }*/
-
-     for(;;) 
-     { 
-
-    // delay (3) ;
-
-       while (serialDataAvail (fd))
+ for(;;) 
+ { 
+    while (serialDataAvail (fd))
+   {
+       rec=serialGetchar(fd);
+       if(rec == 254)
        {
-          rec=serialGetchar(fd);
-  //        printf(" %x ",rec);
-   //       serialPutchar(fd, rec & 0xff );          
-  //        bytes_sent = sendto(udpsock,&rec, 1, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
-/*
-         if( 254 == rec )
-         {
-          mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
-          len = mavlink_msg_to_send_buffer(buf, &msg);
-          bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
-        }
-*/
-//         printf (" -> %3x", serialGetchar (fd)) ;
- //        fflush (stdout) ;
-       }
-    }
 
-  printf ("\n") ;
+        mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
+        len = mavlink_msg_to_send_buffer(buf, &msg);
+        bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
+       }
+
+  
+    }
+ }
+
   return 0 ;
 }
