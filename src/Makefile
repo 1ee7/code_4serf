@@ -1,7 +1,7 @@
 
 
 main: main.o wiringSerial.o udpinit.o
-	gcc main.o wiringSerial.o udpinit.o -o main
+	gcc main.o wiringSerial.o udpinit.o mavlinkParse.h -o main
 
 main.o: main.c 
 	gcc -c main.c
