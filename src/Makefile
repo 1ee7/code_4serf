@@ -1,7 +1,7 @@
 
 
 main: main.o wiringSerial.o udpinit.o
-	gcc main.o wiringSerial.o -o main
+	gcc main.o wiringSerial.o udpinit.o -o main
 
 main.o: main.c 
 	gcc -c main.c
@@ -16,5 +16,5 @@ udpinit.o: udpinit.c
 
 clean:
 	@echo "cleanning project"
-	rm main *.o
+	rm  -rf main *.o
 	@echo "clean completed"
