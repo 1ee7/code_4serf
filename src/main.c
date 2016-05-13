@@ -74,15 +74,19 @@ int main ()
        uint8_t byte=serialGetchar(fd);
        if(mavlink_parse_char(chan,byte,&msg,&mstatus))
        {
-          printf("Received message with ID %d, sequence: %d from component %d of system %d \n", msg.msgid, msg.seq, msg.compid, msg.sysid);
+         len = mavlink_msg_to_send_buffer(buf, &msg);
+         bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
+
+        /* bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
+          printf("Received message with ID %d, sequence: %d from component %d of system %d \n", msg.msgid, msg.seq, msg.compid, msg.sysid);*/
         }
  
-       if(byte == 254)
+       /*if(byte == 254)
        {
          mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
          len = mavlink_msg_to_send_buffer(buf, &msg);
          bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
-       }
+       }*/
 
   
     }
