@@ -48,7 +48,7 @@ int main ()
   struct sockaddr_in locAddr;
 //struct sockaddr_in fromAddr;
 
-
+  unsigned int temp = 0;
  //  float position[6] = {};
    uint8_t buf[BUFFER_LENGTH];
    int bytes_sent;
@@ -80,7 +80,33 @@ int main ()
         /* bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
           printf("Received message with ID %d, sequence: %d from component %d of system %d \n", msg.msgid, msg.seq, msg.compid, msg.sysid);*/
         }
- 
+    }    
+     
+       memset(buf, 0, BUFFER_LENGTH);
+
+       recsize = recvfrom(sock, (void *)buf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
+    if (recsize > 0)
+        {
+           // Something received - print out all bytes and parse packet
+           mavlink_message_t msg;
+           mavlink_status_t status;
+      
+          printf("Bytes Received: %d\nDatagram: ", (int)recsize);
+          for (i = 0; i < recsize; ++i)
+           {
+             temp = buf[i];
+             serialPutchar   ( fd, (unsigned char)temp) ;
+             printf("%02x ", (unsigned char)temp);
+            /*     if (mavlink_parse_char(chan, buf[i], &msg, &status))
+           {
+              // Packet received
+              printf("\nReceived packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
+            }*/
+          }
+            memset(buf, 0, BUFFER_LENGTH);
+         // printf("\n");
+        }
+     
        /*if(byte == 254)
        {
          mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
