@@ -48,14 +48,19 @@ int main ()
   struct sockaddr_in locAddr;
 //struct sockaddr_in fromAddr;
 
-  unsigned int temp = 0;
+//  unsigned int temp = 0;
  //  float position[6] = {};
-   uint8_t buf[BUFFER_LENGTH];
+   uint8_t sendbuf[BUFFER_LENGTH];
+   uint8_t recbuf[BUFFER_LENGTH];
    int bytes_sent;
+   ssize_t recsize;
+   socklen_t fromlen;
    uint16_t len;
    int i = 0;
-   mavlink_message_t msg;
-   mavlink_status_t mstatus;
+   mavlink_message_t sendmsg;
+   mavlink_status_t sendstatus;
+   mavlink_message_t recmsg;
+   mavlink_status_t recstatus;
    unsigned int temp = 0;
    int chan = 0;
    int udpsock=udpinit(target_ip,&gcAddr,&locAddr);
@@ -83,19 +88,18 @@ int main ()
     }    
      
        memset(buf, 0, BUFFER_LENGTH);
-
-       recsize = recvfrom(sock, (void *)buf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
-    if (recsize > 0)
-        {
+       recsize = recvfrom(udpsock, (void *)buf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
+       if (recsize > 0)
+       {
            // Something received - print out all bytes and parse packet
            mavlink_message_t msg;
            mavlink_status_t status;
       
-          printf("Bytes Received: %d\nDatagram: ", (int)recsize);
+       //   printf("Bytes Received: %d\nDatagram: ", (int)recsize);
           for (i = 0; i < recsize; ++i)
            {
              temp = buf[i];
-             serialPutchar   ( fd, (unsigned char)temp) ;
+             serialPutchar(fd, (unsigned char)temp) ;
              printf("%02x ", (unsigned char)temp);
             /*     if (mavlink_parse_char(chan, buf[i], &msg, &status))
            {
@@ -116,7 +120,7 @@ int main ()
 
   
     }
- }
+ 
 
   return 0 ;
 }
