@@ -77,50 +77,32 @@ int main ()
     while (serialDataAvail (fd))
    {
        uint8_t byte=serialGetchar(fd);
-       if(mavlink_parse_char(chan,byte,&msg,&mstatus))
+       if(mavlink_parse_char(chan,byte,&sendmsg,&sendstatus))
        {
-         len = mavlink_msg_to_send_buffer(buf, &msg);
-         bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
+         len = mavlink_msg_to_send_buffer(sendbuf, &sendmsg);
+         bytes_sent = sendto(udpsock, sendbuf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
 
-        /* bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
-          printf("Received message with ID %d, sequence: %d from component %d of system %d \n", msg.msgid, msg.seq, msg.compid, msg.sysid);*/
-        }
-    }    
-     
-       memset(buf, 0, BUFFER_LENGTH);
-       recsize = recvfrom(udpsock, (void *)buf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
-       if (recsize > 0)
-       {
-           // Something received - print out all bytes and parse packet
-           mavlink_message_t msg;
-           mavlink_status_t status;
-      
-       //   printf("Bytes Received: %d\nDatagram: ", (int)recsize);
+        recsize = recvfrom(udpsock, (void *)recbuf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
+        if (recsize > 0)
+        {
+          // mavlink_message_t msg;
+          // mavlink_status_t status;  
           for (i = 0; i < recsize; ++i)
            {
-             temp = buf[i];
+             temp = recbuf[i];
              serialPutchar(fd, (unsigned char)temp) ;
              printf("%02x ", (unsigned char)temp);
-            /*     if (mavlink_parse_char(chan, buf[i], &msg, &status))
-           {
-              // Packet received
-              printf("\nReceived packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
-            }*/
+         
           }
-            memset(buf, 0, BUFFER_LENGTH);
-         // printf("\n");
-        }
+          
+       }
+   }    
      
-       /*if(byte == 254)
-       {
-         mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
-         len = mavlink_msg_to_send_buffer(buf, &msg);
-         bytes_sent = sendto(udpsock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
-       }*/
-
-  
-    }
- 
+        memset(sendbuf, 0, BUFFER_LENGTH);
+        memset(recbuf, 0, BUFFER_LENGTH);
+ } 
+     
+}
 
   return 0 ;
 }
