@@ -72,17 +72,33 @@ int main ()
     return 1 ;
   } 
 
- for(;;) 
- { 
-    while (serialDataAvail (fd))
-   {
+    pid_t child;  
+    if((child=fork())==-1)
+    {
+       perror("fork");  
+        exit(EXIT_FAILURE);  
+    }
+
+
+    else if (child==0)
+    {
+       while (serialDataAvail (fd))
+      {
        uint8_t byte=serialGetchar(fd);
        if(mavlink_parse_char(chan,byte,&sendmsg,&sendstatus))
        {
          len = mavlink_msg_to_send_buffer(sendbuf, &sendmsg);
          bytes_sent = sendto(udpsock, sendbuf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
 
-        recsize = recvfrom(udpsock, (void *)recbuf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
+       }
+     }
+
+      memset(sendbuf, 0, BUFFER_LENGTH);
+      
+   }
+     else
+     {
+          recsize = recvfrom(udpsock, (void *)recbuf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
         if (recsize > 0)
         {
           // mavlink_message_t msg;
@@ -94,15 +110,27 @@ int main ()
              printf("%02x ", (unsigned char)temp);
          
           }
+
+           memset(recbuf, 0, BUFFER_LENGTH);
           
        }
+
+     }
+
+
+/*
+ for(;;) 
+ { 
+    
+
+       
    }    
      
-        memset(sendbuf, 0, BUFFER_LENGTH);
-        memset(recbuf, 0, BUFFER_LENGTH);
+       
+       
  } 
      
-}
+}*/
 
   return 0 ;
 }
