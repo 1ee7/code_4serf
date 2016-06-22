@@ -1,0 +1,110 @@
+//=====================================
+// 开机进入root
+//====================================
+参照 /usr/sbin/raspi-config
+修改 /etc/systemd/system/autologin@.service 文件中
+29: ExecStart=-/sbin/agetty --autologin root --noclear %I $STEM
+
+然后 sudo raspi-config 选择自启动选项，重启即可
+
+
+//===============================
+// 开机启动 hotplug-usb0chengx
+//==============================
+
+编辑 /etc/rc.local
+
+在esc上添加
+
+/home/pi/Project/hotplug-usb0 &
+
+根据不同的环境修改为相应的路径
+
+
+//============================
+//
+//根据是否有eth0接入切换usb0与eth0（丢弃）
+//
+//============================
+
+/etc/network/interfaces
+
+auto lo
+auto br0
+auto br1
+
+iface lo inet loopback
+
+allow-hotplug eth0
+iface eth0 inet static
+address 192.168.42.120
+netmask 255.255.255.0
+gateway 192.268.42.1
+
+allow-hotplug eth1
+
+allow-hotplug usb0
+iface usb0 inet dhcp
+
+allow-hotplug br0
+iface br0 inet dhcp
+	bridge_fd 1
+	bridge_hello 3
+	bridge_maxage 10
+	bridge_stp pff
+	bridge_ports eth1 usb0
+
+allow-hotplug br1
+iface br1 inet dhcp
+	bridge_fd 1
+	bridge_hello 3
+	bridge_maxage 10
+	bridge_stp pff
+	bridge_ports eth1 eth0
+	
+//========================================
+//
+//brctl 脚本实现usb0 到 eth0的切换(初始测试）
+//
+//========================================
+
+br0up---usb0
+*************************************
+#!/bin/bash
+ brctl addbr br0
+ brctl addif br0 eth1
+ brctl addif br0 usb0
+ ifconfig br0 192.168.42.122 netmask 255.255.255.0 up
+
+br0down--usb0
+*******************************
+#! /bin/bash
+  ifconfig br0 down
+  brctl delbr br0
+
+br1up---eth0
+*************************************
+#!/bin/bash
+ brctl addbr br1
+ brctl addif br1 eth1
+ brctl addif br1 eth0
+ ifconfig br1 192.168.42.122 netmask 255.255.255.0 up
+
+br1down--eth0
+*******************************
+#! /bin/bash
+  ifconfig br1 down
+  brctl delbr br1
+
+//=====s======================================
+
+//=============================
+//
+//   自动切换 的实现
+//
+//==========================
+
+把br0up.sh br0down.sh br1up.sh  br1down.sh 加到/usr/bin下
+
+开机启动/etc/rc.loacl 添加 /home/pi/Projects/video/videsw
+开机为root 自动登陆

@@ -1,0 +1,82 @@
+
+raspi射频板串口进，usb跟网口出
+2016-2-26-raspbian-jessie-lite.img 1.3G 基础上修改配置
+//=============================
+//  raspi上安装配置 dhcp-server
+//==============================
+ 
+    sudo apt-get install dnsmasq 
+    sudo cp /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
+    sudo vi /etc/dnsmasq.conf
+
+     domain-needed
+     interface=eth0
+     dhcp-range=192.168.1.50,192.168.1.180,12h
+
+  配置/etc/network/interfaces
+     
+      auto lo
+     iface lo inet loopback
+ 
+      allow-hotplug eth0  
+      iface eth0 inet static
+      address 192.168.1.3
+      netmask 255.255.255.0
+      gateway 192.168.1.1
+
+      allow-hotplug usb0
+      iface usb0 inet static
+      address 192.168.42.3
+      netmask 255.255.255.0
+      gateway 192.168.42.1
+
+
+
+
+//================================
+//  支持hdmi热插热拔
+//=================================
+
+   Add these two lines to /boot/config.txt and reboot Raspbmc:
+   hdmi_force_hotplug=1
+   hdmi_drive=2
+
+//================================
+//  打开ttys0
+//==============================
+   cd /boot
+   sudo vim config.txt
+   添加
+   # At the bottom I added this
+   dtoverlay=uart1,txd1_pin=40,rxd1_pin=41
+
+//===========================
+//  安装配置mavproxy
+//==========================
+    sudo apt-get install python-opencv python-wxgtk2.8 python-pip python-dev
+    sudo pip install MAVProxy
+
+    wget https://raw.githubusercontent.com/dronekit/dronekit-python/3222b2cdb71b8b4c5b924ee28fc5d3529be00e67/scripts/mavgateway
+
+
+     start-stop-daemon --start --background --make-pidfile --chuid pi --chdir /tmp --quiet --pidfile $PIDFILE --exec $DAEMON -- \
+
+
+      mavproxy.py --master=/dev/ttyS0,57600 --out=udpin:0.0.0.0:14550  --out=udpout:192.168.42.129:14550
+
+
+    sudo mv mavgateway /etc/init.d/mavgateway
+    sudo chown root:root mavgateway
+    sudo chmod 755 mavgateway
+
+    sudo update-rc.d mavgateway defaults
+Reboot the RPi:
+    sudo reboot
+
+//=====================
+//   测试   2016-3-28
+//======================
+mavproxy.py --master=/dev/ttyS0,57600 --out=udpout:192.168.42.129:14550
+
+
+

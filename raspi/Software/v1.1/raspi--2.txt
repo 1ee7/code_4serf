@@ -1,0 +1,104 @@
+//=========================
+//   安装omxplayer
+//========================
+  /etc/apt/sources.list文件中添加
+ 
+   http://mirror.sysu.edu.cn/raspbian/raspbian/ 源
+   sudo apt-get update
+   sudo apt-get -y install omxplayer
+
+   http://elinux.org/Omxplayer
+
+
+//=============================
+//  视频流的显示
+//=============================
+
+  sudo vim /etc/network/interfaces
+  添加
+  allow-hotplug eth1
+  iface eth1 inet static
+  address 192.168.0.120
+  netmask 255.255.255.0
+  gateway 192.168.0.1
+
+ipcamera 地址：
+
+  rtsp://192.168.0.123:554/mpeg4 
+
+
+omxplayer -o hdmi rtsp://192.168.0.123:554/mpeg4 （较高的延时5-6s，以及不能全屏）
+omxplayer -o hdmi -r --no-keys --live  rtsp://192.168.42.123:554/mpeg4（延时1s，无其他信息显示）
+
+gst-launch-1.0 rtspsrc location=rtsp://192.168.42.123:554/mpeg4 latency=0 ! rtph264depay ! mpegtsmux !  filesink location=/dev/stdout | omxplayer -r --no-keys --live pipe:0
+//=======================================================
+// 视频流的输出映射到eth0
+// 采用patric编辑后的地面站，会主动获取Ipcamera的视频流
+//=======================================================
+
+sudo apt-get install bridge-utils
+
+配置interfaces
+
+auto lo
+auto br0
+iface lo inet loopback
+
+allow-hotplug eth0
+iface eth0 inet static
+address 192.168.1.3
+netmask 255.255.255.0
+gateway 192.168.1.1
+
+allow-hotplug eth1
+
+allow-hotplug usb0
+
+iface usb0 inet dhcp
+  address 192.168.42.3
+  netmask 255.255.255.0
+  gateway 192.168.42.1
+
+iface br0 inet dhcp
+	bridge_fd 1
+	bridge_hello 3
+	bridge_maxage 10
+	bridge_stp off
+	bridge_ports eth1 eth0
+
+可通过eth0获取ipcamera(192.168.0.123:554)的视频流
+
+
+通过下面设置，可实现数据与视频流的同时输出到网口上
+
+mavproxy.py --master=/dev/ttyS0,57600 --out=udpbcast:192.168.0.255:14550
+
+//==============================================
+//  socat替代mavproxy 解决cpu占用率高的问题
+//===============================================
+
+sudo apt-get install socat
+
+socat -d -d /dev/ttyS0,raw,nonblock,ignoreeof,cr,b57600 UDP-LISTEN:14550
+(usb0 不能用)
+
+//=================================
+//    如何通过usb0显示视频流
+//=================================
+树莓派产生视频流主动发送的情况下
+
+
+//=================================
+//   视频流与数据同时传输
+//=================================
+
+
+
+//==========================
+//      测试
+//==========================
+
+//============可用
+gst-launch-1.0 rtspsrc location=rtsp://192.168.42.123:554/mpeg4 latency=0 ! rtph264depay ! mpegtsmux !  filesink location=/dev/stdout | omxplayer -r --no-keys --live pipe:0
+
+

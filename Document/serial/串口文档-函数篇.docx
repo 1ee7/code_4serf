@@ -1,0 +1,26 @@
+º¯Êý
+
+
+
+cfmakeraw()
+-------------------------
+
+cfmakeraw()
+set raw mode 
+
+SYNOPSIS
+
+#include <termios.h>
+void cfmakeraw(struct termios *termios_p);
+
+DESCRIPTION
+
+This function sets the structure specified by termios_p to raw mode. There is no effect on the hardware until a subsequent successful call to tcsetattr().
+
+PARAMETERS
+termios_p 
+Points to a termios structure.
+
+RETURN VALUES
+None.
+

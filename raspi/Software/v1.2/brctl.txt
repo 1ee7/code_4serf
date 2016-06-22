@@ -1,0 +1,43 @@
+#安装bridge
+
+sudo apt-get install bridge-utils
+
+# brctl addbr br0 ( 建立一个逻辑网段，名称为br0)
+
+
+# brctl addif br0 eth1                ( 让eth1 成为br0 的一个端口)
+# brctl addif br0 eth0                ( 让eth2 成为br0 的一个端口)
+# brctl addif br0 eth3                ( 让eth3 成为br0 的一个端口)
+
+网桥的每个物理网卡作为一个端口，运行于混杂模式，而且是在链路层工作，所以就不需要IP了。
+ 
+
+ 
+# ifconfig eth0 0.0.0.0
+# ifconfig eth1 0.0.0.0
+# ifconfig eth2 0.0.0.0
+# ifconfig eth3 0.0.0.0
+# ip addr add 127.0.0.1/8 dev lo brd +
+（ip 是iproute2 软件包里面的一个强大的网络配置工具，它能够替代一些传统的网络管理工具。例如：ifconfig 、route 等。这个手册将分章节介绍ip 命令及其选项。）
+
+
+ 
+# ifconfig br0 192.168.1.1
+（然后给br0 的虚拟网卡配置IP ：192.168.1.1 。那样就能远程管理网桥。）
+
+
+  brctl 命令详细分析
+
+增加桥接过程
+ （ 1 ） # brctl addbr br0
+（ 2 ） # brctl addif br0 eth0  
+（ 3 ） #   ip addr add 172.16.12.43/8 dev br0 brd +
+（ 4 ） #   ifconfig br0 up
+
+删除桥接过程
+（ 1 ） # ip addr del 172.16.12.43/8 dev br0 brd +
+（ 2 ） # ifconfig br0 down  
+（ 3 ） # brctl delif br0 eth0
+（ 4 ） # brctl delbr br0
+
+ ifconfig bridge 10.0.0.1 netmask 255.255.255.0 up
