@@ -13,6 +13,7 @@
 #include<netdb.h> 
 #include<stdarg.h> 
 #include<string.h> 
+#include <fcntl.h>
 #include "./mavlink-custom/1.0/tx1control/mavlink.h"
 
   
@@ -92,7 +93,14 @@ int main()
       close(client_socket_fd);
       exit(EXIT_FAILURE);
    } 
-
+/* Attempt to make it non blocking */
+  if (fcntl(sock, F_SETFL, O_NONBLOCK | FASYNC) < 0)
+    {
+    fprintf(stderr, "error setting nonblocking: %s\n", strerror(errno));
+    close(sock);
+    exit(EXIT_FAILURE);
+  
+    }
  for(;;) { 
  /* 输入文件名到缓冲区 */
 /*
