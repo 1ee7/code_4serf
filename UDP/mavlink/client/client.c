@@ -1,6 +1,7 @@
 /************************************************************************* 
  > File Name: client.c 
  > Author: SongLee 
+ 
  ************************************************************************/
 #include<sys/types.h> 
 #include<sys/socket.h> 
@@ -13,7 +14,7 @@
 #include<netdb.h> 
 #include<stdarg.h> 
 #include<string.h> 
-#include <fcntl.h>
+#include<fcntl.h>
 #include "./mavlink-custom/1.0/tx1control/mavlink.h"
 
   
@@ -26,6 +27,11 @@
 
  mavlink_sys_status_t sys_status;
  mavlink_tx1_control_stream_t tx1_stream;
+ mavlink_tx1_control_position_t control_position;
+ static uint8_t flags_send_tracked=0;
+ uint16_t recv_top_left_x=0, recv_top_left_y=0, recv_bottom_right_x=0, recv_bottom_left_y=0;
+ 
+ 
 static inline void  handleMessage(mavlink_message_t* p_msg)
 {
 // printf("tgl debug \n");
@@ -33,18 +39,28 @@ static inline void  handleMessage(mavlink_message_t* p_msg)
   {
    case MAVLINK_MSG_ID_SYS_STATUS: 
         mavlink_msg_sys_status_decode(p_msg,&sys_status);
-        printf("the sys_status.voltage_battery is %d, sys_status.current_battery is %d,sys_status.drop_rate_comm is %d\n",sys_status.voltage_battery,sys_status.current_battery,sys_status.drop_rate_comm);
+        printf("\nthe sys_status.voltage_battery is %d, sys_status.current_battery is %d,sys_status.drop_rate_comm is %d\n",sys_status.voltage_battery,sys_status.current_battery,sys_status.drop_rate_comm);
         break;
    case MAVLINK_MSG_ID_TX1_CONTROL_STREAM:
        mavlink_msg_tx1_control_stream_decode(p_msg,&tx1_stream);
       if((unsigned int)tx1_stream.stream_on_off == 1)
-        printf("the tx1: accept the cmd is :start the stream\n");
+        printf("\nthe tx1: accept the cmd is :start the stream\n");
       if(tx1_stream.stream_on_off == 0)
-        printf("the tx1: accept the cmd is :stop the stream\n");
+        printf("\nthe tx1: accept the cmd is :stop the stream\n");
        break;
-     
+   case MAVLINK_MSG_ID_TX1_CONTROL_POSITION:
+       mavlink_msg_tx1_control_position_decode(p_msg, &control_position);
+       recv_top_left_x = control_position.top_left_x;
+       recv_top_left_y = control_position.top_left_y;
+       recv_bottom_right_x = control_position.bottom_right_x;
+       recv_bottom_left_y = control_position.bottom_left_y;
+       printf("\nreceived from server(qgc) the position is (%d,%d),(%d,%d) \n",control_position.top_left_x,control_position.top_left_y,
+       control_position.bottom_right_x,control_position.bottom_left_y);  
+       flags_send_tracked=0xcc;
+      break;
      
    default: //nothing
+       printf("nothing to be done \n");
         break;
   }
   
@@ -66,12 +82,12 @@ int main()
     mavlink_message_t recv_msg;
     mavlink_status_t recv_status;
 
- /* 服务端地址 */
+ /* server ip */
     struct sockaddr_in server_addr; 
     struct sockaddr_in server_addr_bind; 
     bzero(&server_addr, sizeof(server_addr)); 
     server_addr.sin_family = AF_INET; 
-    server_addr.sin_addr.s_addr = inet_addr("192.168.137.13"); 
+    server_addr.sin_addr.s_addr = inet_addr("192.168.137.13"); //change the ip with your sever pc 
     server_addr.sin_port = htons(SERVER_PORT); 
 
     bzero(&server_addr_bind, sizeof(server_addr_bind)); 
@@ -79,7 +95,7 @@ int main()
     server_addr_bind.sin_addr.s_addr = INADDR_ANY; 
     server_addr_bind.sin_port = htons(SERVER_PORT_BIND); 
   
- /* 创建socket */
+ /* create socket */
      int client_socket_fd = socket(AF_INET, SOCK_DGRAM, 0); 
     if(client_socket_fd < 0) 
     { 
@@ -93,69 +109,52 @@ int main()
       close(client_socket_fd);
       exit(EXIT_FAILURE);
    } 
-/* Attempt to make it non blocking */
-  if (fcntl(sock, F_SETFL, O_NONBLOCK | FASYNC) < 0)
+/* Attemp to make it non blocking  */
+    if(fcntl(client_socket_fd,F_SETFL,O_NONBLOCK | FASYNC) < 0)
     {
-    fprintf(stderr, "error setting nonblocking: %s\n", strerror(errno));
-    close(sock);
-    exit(EXIT_FAILURE);
-  
-    }
- for(;;) { 
- /* 输入文件名到缓冲区 */
-/*
-    char file_name[FILE_NAME_MAX_SIZE+1]; 
-    bzero(file_name, FILE_NAME_MAX_SIZE+1); 
-    printf("Please Input File Name On Server:\t"); 
-
-    scanf("%s", file_name); 
-  
-    char buffer[BUFFER_SIZE]; 
-    bzero(buffer, BUFFER_SIZE); 
-    strncpy(buffer, file_name, strlen(file_name)>BUFFER_SIZE?BUFFER_SIZE:strlen(file_name)); 
-*/ 
- /* 发送文件名 */
-
- /*   if(sendto(client_socket_fd, buffer, BUFFER_SIZE,0,(struct sockaddr*)&server_addr,sizeof(server_addr)) < 0) 
-    { 
-       perror("Send File Name Failed:"); 
-       exit(1); 
+      fprintf(stderr,"error setting nonblocking: %s \n",strerror(errno));
+      close(client_socket_fd);
+      exit(EXIT_FAILURE);
     } 
-*/
-/* 发送Mavlinks信息 */
-   // Hearbeat message id
-
+  
+   for(;;) 
+   { 
+ /* SEND MESSAGE */	 
+    // Hearbeat message id
     bzero(buff,BUFFER_LENGTH);
     mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
     len = mavlink_msg_to_send_buffer(buff, &msg);
     bytes_sent = sendto(client_socket_fd, buff, len, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
-//    printf("send after debug\n");
-   
+   // Tracked position message id
+    if(flags_send_tracked == 0xcc)
+    {
+      mavlink_msg_tx1_tracked_position_pack(1, 200 , &msg,recv_top_left_x, recv_top_left_y, recv_bottom_right_x, recv_bottom_left_y,1);
+      len = mavlink_msg_to_send_buffer(buff, &msg);
+      bytes_sent = sendto(client_socket_fd, buff, len, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
+    } 
     
- //   sleep(1);
+ 
 
-/*  接收信息 */
+ /*RECEIVE MESSAGE */
     
     bzero(buffer_recv,BUFFER_LENGTH);
     recsize=recvfrom(client_socket_fd,buffer_recv,BUFFER_LENGTH,0,(struct sockaddr*)&server_addr,&fromlen); 
     if(recsize>0)
     {
-     printf("byte received: %d \n Datagram: ",(int)recsize);
-     for( i=0;i<recsize; ++i)
-     {
+      printf("byte received: %d \n Datagram: ",(int)recsize);
+      for( i=0;i<recsize; ++i)
+      {
         temp=buffer_recv[i];
         printf("%02x ",(unsigned char)temp);
         if(mavlink_parse_char(0,buffer_recv[i],&recv_msg,&recv_status))
-        {
+         {
           printf("\n Receive packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n",recv_msg.sysid,recv_msg.compid,recv_msg.len,recv_msg.msgid);
           handleMessage(&recv_msg);    
-        }
-
-     }
-
+		  }
+      }/* end for( i=0;i<recsize; ++i)  */
     }   
-sleep(1);
-}
-     close(client_socket_fd); 
-     return 0; 
-} 
+    sleep(1);
+  }  /* end for(;;)  */
+  close(client_socket_fd); 
+  return 0; 
+} /* end main*/
