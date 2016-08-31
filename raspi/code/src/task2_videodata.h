@@ -28,6 +28,6 @@ FILE *fp3;
  #define BUFFER_LENGTH_TASK3 2041
  static uint8_t send_Task3_MavBuf[BUFFER_LENGTH_TASK3];
  uint16_t  len_task3;
-
+int rssi=0;
 
 #endif

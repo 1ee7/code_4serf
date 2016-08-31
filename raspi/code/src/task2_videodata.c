@@ -80,6 +80,20 @@ void task3_SendSerial(const char *buf, uint16_t len)
 }
 
 
+void task3_getStatusPddl()
+{
+
+  FILE *fp4;
+  system("/home/pi/project/raspi-code-v1.8/sub/sub_pddl");
+  if((fp4=fopen("/home/pi/project/raspi-code-v1.8/share/val.dat","r"))==NULL)
+    printf("erro open val.dat \n");
+  fscanf(fp4,"%d",&rssi); 
+//  printf("rssi is [tgl debug 1] %d\n",rssi); 
+
+  fclose(fp4);
+}
+
+
 
 void task3_MavPddl(mavlink_message_t mav_smesg, mavlink_status_t mav_sstat)
 {
@@ -90,10 +104,15 @@ void task3_MavPddl(mavlink_message_t mav_smesg, mavlink_status_t mav_sstat)
     switch((unsigned int)command_id) {
       case 0:
            printf(" linked with maseter \n");       
-           task3_MavPack(&mav_smesg,192); //1100 0000           
+           task3_getStatusPddl();
+           if(rssi <= 120 && rssi >=  30)
+            {
+               rssi = 13-rssi / 10;  //0-10  
+             }
+            task3_MavPack(&mav_smesg,192); //1100 0000           
             break;
       case 1:   /* send  the system status  */
-          printf(" not linked to master\n");
+           printf(" not linked to master\n");
            task3_MavPack(&mav_smesg,128); //1000 0000
            break;
 
