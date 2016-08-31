@@ -39,6 +39,8 @@ char * target_ip="192.168.42.129";
 mavlink_message_t sendmsg1;
 mavlink_status_t sendstatus;
  
+mavlink_message_t sendmsg2;
+mavlink_status_t sendstatus2; 
 //==========================  
 
 int main()
@@ -78,9 +80,16 @@ int main()
    else
     {
      printf("task2 will begin \n");
-     if(task2_videdata()!=0) //return 1;
-//k        task2_videdata();
-	     exit(1);
+       while(1){
+
+       task2_videdata();
+       task3_MavPddl(sendmsg2,sendstatus2);
+       sleep(1);
+
+    }
+      
+        printf("task 3 over \n");
+         exit(0);
     }
 
 	

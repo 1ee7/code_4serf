@@ -1,13 +1,8 @@
 #include "task2_videodata.h"
 
+
 void task2_init()
 {
-/*
-  struct ethtool_value edata;
-  int fd2=-1,err=0;
-  struct ifreq ifr;
-  int flag=0,flag1=0;
-*/
 
   memset(&ifr,0,sizeof(ifr));
   strcpy(ifr.ifr_name,"usb0");
@@ -22,8 +17,6 @@ void task2_init()
 
 int task2_videdata()    
 {    
-  for(;;)
- { 
    err=ioctl(fd2,0x8946,&ifr);
    if (err == 0)
    {
@@ -32,9 +25,9 @@ int task2_videdata()
           printf("usb0 is up \n");
           flag=1; flag1=0;
           status=system("br1down");
-	  status=system("br0up") ;
+          status=system("br0up") ;
       }
-     else if (edata.data == 0 && flag1 == 0 )
+      else if (edata.data == 0 && flag1 == 0 )
       {
          printf("usb0 is not up \n");
          flag1=1; flag=0;
@@ -45,92 +38,72 @@ int task2_videdata()
       printf("cannot get link status\n");
       flag1=1; flag=0;
    }
-   sleep(2);
 
-  }
- return 0;
-}    
+}   
 
-#if 0
-void task2_init()
+
+
+//============task 3
+void task3_Ping()
 {
-    fd2 = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);    
-    setsockopt(fd2, SOL_SOCKET, SO_RCVBUF, &len2, sizeof(len2));    
-    memset(&addr, 0, sizeof(addr));    
-    addr.nl_family = AF_NETLINK;    
-    addr.nl_groups = RTNLGRP_LINK;    
-    bind(fd2, (struct sockaddr*)&addr, sizeof(addr));    
+    fp3=popen("/home/pi/mode1/shell/pingtarget.sh","r");
+    fgets(&command_id_char,sizeof(&command_id_char),fp3);
+//    printf("the value id_cahr is %c\n",command_id_char);
+    command_id=atoi(&command_id_char);
+ //   printf("the value id is %d\n",command_id);
+
 }
 
-    
-int task2_videdata()    
-{    
-  for(;;){ 
-    while ((retval = read(fd2, buf, BUFLEN)) > 0)    
-    {    
-        for (nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, retval); nh = NLMSG_NEXT(nh, retval))    
-        {    
-            if (nh->nlmsg_type == NLMSG_DONE)    
-                break;    
-            else if (nh->nlmsg_type == NLMSG_ERROR)    
-            {
-		printf("erro when task2\n");
-                return -1;    
-             }
-            else if (nh->nlmsg_type != RTM_NEWLINK)    
-                continue;    
-            ifinfo = NLMSG_DATA(nh);    
-     //      printf("%u: %s", ifinfo->ifi_index,    
-       //             (ifinfo->ifi_flags & IFF_LOWER_UP) ? "up" : "down" );    
-            attr = (struct rtattr*)(((char*)nh) + NLMSG_SPACE(sizeof(*ifinfo)));    
-            len2 = nh->nlmsg_len - NLMSG_SPACE(sizeof(*ifinfo));    
-            for (; RTA_OK(attr, len2); attr = RTA_NEXT(attr, len2))    
-            {    
-                if (attr->rta_type == IFLA_IFNAME)    
-                {
-					if(strstr((char *)RTA_DATA(attr),"usb0")!=NULL)
-					{
-						if(ifinfo->ifi_flags & IFF_LOWER_UP)
-						{
-							if(flag==0){
-								flag++;
-								printf("usb0 is up\n");
-								status=system("br1down");
-				//				if(status < 0) printf("br1down is wrong \n");
-								 status=system("br0up") ;
-				//				 if(status < 0) printf("br0up is wrong \n");
-							}
-						}
-						else flag=0;
-					}
-					
-					if(strstr((char *)RTA_DATA(attr),"eth0")!=NULL)
-					{
-						if(ifinfo->ifi_flags & IFF_LOWER_UP)
-						{
-							if(flag1==0){
-								flag1++;
-								printf("eth0 is up\n");
-								 status=system("br0down");
-				//				 if(status < 0) printf("br0down is wrong \n");
-								 status=system("br1up"); 
-				//				 if(status < 0) printf("br1up is wrong \n");
-							}
-						}
-						else flag1=0;
-					}
+void task3_MavPack(mavlink_message_t* msg,uint8_t ind)
+{
+//mavlink_msg_debug_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, uint32_t time_boot_ms, uint8_t ind, float value)
+  mavlink_msg_debug_pack(250,100, msg, 0,  ind, 0);
 
-              //      printf(" %s", (char*)RTA_DATA(attr));    
-                    break;    
-                }    
-          }    
-//            printf("\n");    
-            sleep(1);
-        }    
-    }    
- //    printf("debug task2\n");
-//    task2_init();
-    }
-    return 0;    
-}   
-#endif
+}
+
+ 
+void task3_SendSerial(const char *buf, uint16_t len)
+{
+     int i;
+     if (len > 0)
+      {
+          for ( i = 0; i < len; ++i)
+          {
+        //     temp = recbuf[i];
+             serialPutchar(fd1, (unsigned char)buf[i]) ;
+          }
+           
+       }
+     else 
+        printf("SendSerial is nothing\n");
+ 
+}
+
+
+
+void task3_MavPddl(mavlink_message_t mav_smesg, mavlink_status_t mav_sstat)
+{
+
+     task3_Ping();
+    //printf("command_id is %d\n ",command_id);
+
+    switch((unsigned int)command_id) {
+      case 0:
+           printf(" linked with maseter \n");       
+           task3_MavPack(&mav_smesg,192); //1100 0000           
+            break;
+      case 1:   /* send  the system status  */
+          printf(" not linked to master\n");
+           task3_MavPack(&mav_smesg,128); //1000 0000
+           break;
+
+      default:
+              //nothing
+          printf("nothing to be done\n");
+          break;
+        }
+
+          
+       len_task3 = mavlink_msg_to_send_buffer(send_Task3_MavBuf,&mav_smesg);
+       task3_SendSerial(send_Task3_MavBuf,len_task3);
+}
