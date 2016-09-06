@@ -37,15 +37,16 @@ struct sockaddr_in locAddr;
 char * target_ip="192.168.42.129";
 
 mavlink_message_t sendmsg1;
-mavlink_status_t sendstatus;
- 
+mavlink_status_t sendstatus1;
 mavlink_message_t sendmsg2;
-mavlink_status_t sendstatus2; 
+mavlink_status_t sendstatus2;
+ 
 //==========================  
 
 int main()
 {
    pid_t pid;
+   pid_t pid1;
 
    if(init(target_ip,&gcAddr,&locAddr) != 0 )
    {
@@ -65,32 +66,62 @@ int main()
     exit(EXIT_FAILURE);	  
   }
 
-	
+
    if(pid==0)
+  {
+
+     if((pid1=fork())==-1)
     {
-    
-     printf("task1 will begin \n");
-      for(;;)
+      perror("fork");  
+      exit(EXIT_FAILURE);   
+    }
+//进程1
+    if(pid1 ==0)
+    {
+
+     printf("task 1 will be running \n");
+      while(1)
       {
-        task1_MavData(sendmsg1,sendstatus); 
+        task1_MavData(sendmsg1,sendstatus1); 
+//        sleep(1);
 
       }
+      printf("task 1 over \n");
       exit(0);
-    }  
+   }
+//进程3
    else
-    {
-     printf("task2 will begin \n");
-       while(1){
+   {
+         printf("task 3 will be running \n");
+      while(1)
+      {
+          task3_MavPddl(sendmsg2,sendstatus2);
+           sleep(1);
+      }
+        printf("task 3 over \n");
+         exit(0);
+
+   }
+
+ }
+
+    //进程2
+  else
+   {
+      printf("task 2 will be running \n");
+      while(1){
 
        task2_videdata();
        task3_MavPddl(sendmsg2,sendstatus2);
        sleep(1);
 
     }
-      
-        printf("task 3 over \n");
+       printf("task 2 over \n");
          exit(0);
-    }
+      
+      
 
-	
+  }
+
 }
+
