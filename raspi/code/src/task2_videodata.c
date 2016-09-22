@@ -1,163 +1,101 @@
 #include "task2_videodata.h"
 
-
-void task2_init()
+void task2_status_network(char *hw_name,unsigned int *status)
 {
+        memset(buf_task2, 0, sizeof(buf_task2));   
+        snprintf(carrier_path, sizeof(carrier_path), "/sys/class/net/%s/carrier", hw_name);  
 
-  memset(&ifr,0,sizeof(ifr));
-  strcpy(ifr.ifr_name,"usb0");
-  fd2=socket(AF_INET,SOCK_DGRAM,0);
-  if(fd2<0)
-  {
-    perror("cannot get control socket");
-  }
-  edata.cmd = 0x0000000a;
-  ifr.ifr_data = (caddr_t)&edata;
+        if ((fp1_task2 = fopen(carrier_path, "r")) != NULL)  
+        {  
+            while (fgets(buf_task2, sizeof(buf_task2), fp1_task2) != NULL)     
+            {  
+                if (buf_task2[0] == '0')       *status = IFSTATUS_DOWN;  
+                 
+                 else                                   *status = IFSTATUS_UP;  
+               
+            } 
+
+        }  
+        else      perror("Open carrier ");  
+
+           fclose(fp1_task2);  
 }
 
-int task2_videdata()    
+
+void task2_videdata()    
 {    
-   err=ioctl(fd2,0x8946,&ifr);
-   if (err == 0)
-   {
-      if(edata.data && flag == 0)
-      {
-          printf("usb0 is up \n");
-          flag=1; flag1=0;
-          status=system("br1down");
-	        status=system("br0up") ;
-      }
-      else if (edata.data == 0 && flag1 == 0 )
-      {
-         printf("usb0 is not up \n");
-         flag1=1; flag=0;
-      }
-   }
-   else if(errno != EOPNOTSUPP && flag1 ==0 )
-   {
-      printf("cannot get link status\n");
-      flag1=1; flag=0;
-   }
-
-}   
+     
+      if ((fp0_task2 = fopen("/proc/net/dev", "r")) != NULL)  
+      {   
+              memset(buf0_task2, 0, sizeof(buf0_task2));   
+            while (fgets(buf0_task2, sizeof(buf0_task2), fp0_task2) != NULL)  
+            {  
+                  if(strstr(buf0_task2, "usb0") != NULL)  
+                 {         
+                       task2_status_network("usb0",&flag_usb0);
+                    //   printf("the flag_usb0 is %d \n",flag_usb0);
+                       break;
+                       
+                  }  
+                      else flag_usb0=0xcc;
 
 
-
-//============task 3
-// void task3_Ping1()
-// {
-//     fp3=popen("/home/pi/mode1/shell/pingtarget.sh","r");
-//     fgets(&command_id_char,sizeof(&command_id_char),fp3);
-// //    printf("the value id_cahr is %c\n",command_id_char);
-//     command_id=atoi(&command_id_char);
-//  //   printf("the value id is %d\n",command_id);
-
-// }
-
-
-// void task3_Ping2()
-// {
-//     fp3=popen("/home/pi/mode1/shell/pingMaster.sh","r");
-//     fgets(&command_id_char,sizeof(&command_id_char),fp3);
-// //    printf("the value id_cahr is %c\n",command_id_char);
-//     command_id=atoi(&command_id_char);
-//  //   printf("the value id is %d\n",command_id);
-
-// }
-
-// void task3_Ping3()
-// {
-//     fp3=popen("/home/pi/mode1/shell/pingSlave.sh","r");
-//     fgets(&command_id_char,sizeof(&command_id_char),fp3);
-// //    printf("the value id_cahr is %c\n",command_id_char);
-//     command_id=atoi(&command_id_char);
-//  //   printf("the value id is %d\n",command_id);
-
-// }
-
-// unsigned int task3_Ping(const char *path)
-// {
-//     fp3=popen(path,"r");
-//     fgets(&command_id_char,sizeof(&command_id_char),fp3);
-// //    printf("the value id_cahr is %c\n",command_id_char);
-//     return atoi(&command_id_char);
-//  //   printf("the value id is %d\n",command_id);
-
-// }
-
-// void task3_MavPack(mavlink_message_t* msg,uint8_t ind)
-// {
-// //mavlink_msg_debug_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, uint32_t time_boot_ms, uint8_t ind, float value)
-//   mavlink_msg_debug_pack(250,100, msg, 0,  ind, 0);
-
-// }
-
- 
-// void task3_SendSerial(const char *buf, uint16_t len)
-// {
-//      int i;
-//      if (len > 0)
-//       {
-//           for ( i = 0; i < len; ++i)
-//           {
-//         //     temp = recbuf[i];
-//              serialPutchar(fd1, (unsigned char)buf[i]) ;
-//           }
-           
-//        }
-//      else 
-//         printf("SendSerial is nothing\n");
- 
-// }
-
-
-
-// void task3_MavPddl(mavlink_message_t mav_smesg, mavlink_status_t mav_sstat)
-// {
-
-//     if(task3_Ping(path[0]))
-//     {
-
-//       if(task3_Ping(path[1]))
-//       {
-//         if(task3_Ping(path[2]))
-//           command_id=0;
-//          else 
-//           command_id=3;
-//       }
-//       else command_id=2;
-//     }
-//   else command_id=1;
-//     //printf("command_id is %d\n ",command_id);
-
-//     switch((unsigned int)command_id) {
-//       case 0:
-//             printf(" not linked to pddl\n");
-//            task3_MavPack(&mav_smesg,128); //1000 0000
-//            break;
-//       case 1:   /* send  the system status  */        
-         
-//            printf(" linked with camera \n");       
-//            task3_MavPack(&mav_smesg,192); //1100 0000           
-//            break;
-//       case 2:   /* send  the system status  */        
-         
-//            printf(" linked with master \n");       
-//            task3_MavPack(&mav_smesg,224); //1110 0000           
-//             break;
-//       case 3:   /* send  the system status  */        
-        
-//            printf(" linked with slave\n");       
-//            task3_MavPack(&mav_smesg,240); //1111 0000           
-//             break;
-
-//       default:
-//               //nothing
-//           printf("nothing to be done\n");
-//           break;
-//         }
-
+                  if(strstr(buf0_task2, "eth0") != NULL)  
+                  {         
+                       task2_status_network("eth0",&flag_eth0);
+                   //    printf("the flag_eth0 is %d \n",flag_eth0);
+                       if(flag_eth0 == IFSTATUS_UP)     break;
+                 
+                    }  
+                      else flag_eth0=0xcc;      
+                
+                  }  
+            }  
+              fclose(fp0_task2);  
+            //=============
           
-//        len_task3 = mavlink_msg_to_send_buffer(send_Task3_MavBuf,&mav_smesg);
-//        task3_SendSerial(send_Task3_MavBuf,len_task3);
-// }
+              if (flag_eth0== IFSTATUS_UP && flag_usb0==IFSTATUS_UP)         flag_network= ETH0_UP ;
+      
+             else if (flag_usb0 == IFSTATUS_UP)         flag_network=USB0_UP;
+          
+             else if (flag_eth0 == IFSTATUS_UP)         flag_network=ETH0_UP;
+
+             else if (flag_eth0 != IFSTATUS_UP && flag_usb0 != IFSTATUS_UP)     
+              { 
+                   flag_network=NOT_LINK;
+                   printf("no link \n");
+                 }
+           //  printf("*** tgl debug **** flag_network is %d \n",flag_network);
+              //====
+
+              if ( flag_network == USB0_UP )
+              {
+                  if(FlagUsb0Uped == 0)  
+                 {
+                    printf("usb0 is up \n");
+                    system("br1down");
+                    system("br0up") ;
+                    FlagUsb0Uped=1;
+                  }
+                }
+              else      FlagUsb0Uped=0;
+          
+             //============
+   
+              if ( flag_network == ETH0_UP )
+              {
+                  if(FlagEth0Uped==0)
+                 {
+                       printf("eth0 is up \n");
+                        system("br0down");
+                        system("br1up") ;
+                        FlagEth0Uped=1;
+                 }
+
+              }
+              else   FlagEth0Uped=0;
+  }
+  
+
+
+

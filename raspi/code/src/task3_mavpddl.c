@@ -4,11 +4,21 @@
 #include "../lib/mavlink/1.0/common/mavlink.h"
 #include "../lib/mavlink/1.0/mavlink_helpers.h"
 
+// //================
+// mavlink_message_t mav_smesg;
+// mavlink_status_t mav_sstat;
+
+
+   static uint8_t sendbuf_task3[512];
+   static  uint16_t status_pddl;
+//============tgl
+
 
 unsigned int task3_Ping(const char *path)
 {
     fp3=popen(path,"r");
     fgets(&command_id_char,sizeof(&command_id_char),fp3);
+    pclose(fp3);
 //    printf("the value id_cahr is %c\n",command_id_char);
     return atoi(&command_id_char);
  //   printf("the value id is %d\n",command_id);
@@ -62,34 +72,49 @@ void task3_MavPddl(mavlink_message_t mav_smesg, mavlink_status_t mav_sstat)
 
     switch((unsigned int)command_id) {
       case 0:
-            printf(" not linked to pddl\n");
+     //       printf(" not linked to pddl\n");
            task3_MavPack(&mav_smesg,128); //1000 0000
+           status_pddl=128;
            break;
       case 1:   /* send  the system status  */        
          
-           printf(" linked with camera \n");       
-           task3_MavPack(&mav_smesg,192); //1100 0000           
+     //      printf(" linked with camera \n");       
+           task3_MavPack(&mav_smesg,240); //1111 0000      
+           status_pddl=240;     
            break;
       case 2:   /* send  the system status  */        
          
-           printf(" linked with master \n");       
-           task3_MavPack(&mav_smesg,224); //1110 0000           
+       //    printf(" linked with master \n");       
+           task3_MavPack(&mav_smesg,176); //1011 0000          
+           status_pddl=176;
             break;
       case 3:   /* send  the system status  */        
         
-           printf(" linked with slave\n");       
-           task3_MavPack(&mav_smesg,240); //1111 0000           
+      //     printf(" linked with slave\n");       
+           task3_MavPack(&mav_smesg,144); //1001 0000           
+           status_pddl=144;
             break;
 
       default:
               //nothing
+          status_pddl=0;
           printf("nothing to be done\n");
           break;
         }
 
           
        len_task3 = mavlink_msg_to_send_buffer(send_Task3_MavBuf,&mav_smesg);
-       task3_SendSerial(send_Task3_MavBuf,len_task3);
+      task3_SendSerial(send_Task3_MavBuf,len_task3);
+
+      //===============
+   // static inline uint16_t mavlink_msg_debug_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, uint32_t time_boot_ms, uint8_t ind, float value)
+
+     mavlink_msg_debug_pack(250,100, &mav_smesg, 0, status_pddl, 0);
+      
+      len_task3 = mavlink_msg_to_send_buffer(sendbuf_task3, &mav_smesg);
+     sendto(udpsock, sendbuf_task3, len_task3, 0, (struct sockaddr*)&gcAddr, sizeof (struct sockaddr_in));
+      //==============
+     //  task3_SendUdp(send_Task3_MavBuf,len_task3);
 }
 
 

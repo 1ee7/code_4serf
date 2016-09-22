@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
 //=============== net ==========================
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -34,13 +35,13 @@ int init(char *ip,struct sockaddr_in *a, struct sockaddr_in *b)
   
 
    if ((fd1 = serialOpen ("/dev/ttyS0", 115200)) < 0)
- //  if ((fd1 = serialOpen ("/dev/ttyAMA0", 115200)) < 0)
+//   if ((fd1 = serialOpen ("/dev/ttyAMA0", 115200)) < 0)
    {
      fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
      return 1 ;
    } 
 
-   task2_init();
+   //task2_init();
 
     //someelse will add following ...
 

@@ -46,12 +46,12 @@ mavlink_status_t sendstatus2;
 int main()
 {
    pid_t pid;
-   pid_t pid1;
 
    if(init(target_ip,&gcAddr,&locAddr) != 0 )
+   {
 	//TODO print some error info.
    	return 1;
-  
+   }
    //for fork child no hangup 
     if(signal(SIGCHLD,SIG_IGN) == SIG_ERR)
     {
@@ -60,59 +60,40 @@ int main()
     }
 //TODO fork maybe 	
   if((pid=fork())==-1)
-   {
-      perror("fork");  
-      exit(EXIT_FAILURE);	  
-   }
+  {
+    perror("fork");  
+    exit(EXIT_FAILURE);	  
+  }
 
 	//进程1
    if(pid==0)
   {
-
-       if((pid1=fork())==-1)
-       {
-            perror("fork");  
-            exit(EXIT_FAILURE);   
-       }
-//进程1
-      if(pid1 ==0)
+     printf("task 1 will be running \n");
+    while(1)
       {
-          printf("task 2 will be running \n");
-          system("br0up");
-          while(1){
-               task2_videdata();
-                sleep(3);
-          }
-          printf("task 2 over \n");
-           exit(0);
-        }
-    //=======================
-//进程3
-       else
-       {
+        task1_MavData(sendmsg1,sendstatus1); 
+//        sleep(1);
 
-           printf("task 3 will be running \n");
-           while(1)
-          {
-             task3_MavPddl(sendmsg2,sendstatus2);
-             sleep(1);
-          }
-            printf("task 3 over \n");
-           exit(0);
-       }
-   }
+      }
+      printf("task 1 over \n");
+      exit(0);
+   }  
     //进程2
-    else
-    {
-         printf("task 1 will be running \n");
-         while(1)
-        {
-            task1_MavData(sendmsg1,sendstatus1); 
-            //        sleep(1);
-        }
-        printf("task 1 over \n");
-        exit(0);
+  else
+   {
+      printf("task 2 will be running \n");
+      while(1){
+
+       task2_videdata();
+       task3_MavPddl(sendmsg2,sendstatus2);
+       sleep(1);
+
     }
+      
+        printf("task 3 over \n");
+	       exit(0);
+
+  }
 
 }
 

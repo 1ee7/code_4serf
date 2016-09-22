@@ -1,37 +1,52 @@
 #ifndef TASK2_VIDEODATA_H
 #define TASK2_VIDEODATA_H
 
-#include <sys/types.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <stdio.h>
-#include <errno.h>
-#include <net/if.h>
-// #include "global.h"
-// #include "../lib/mavlink/1.0/common/mavlink.h"
-// #include "../lib/mavlink/1.0/mavlink_helpers.h"
-struct ethtool_value {
-     __uint32_t cmd;
-     __uint32_t data;
- };
-struct ethtool_value edata;
-int fd2=-1,err=0;
-struct ifreq ifr;
-int flag=0,flag1=0,status=0;
- 
- //================task3 
-// unsigned int command_id;
-// char command_id_char;
-// FILE *fp3;
+ #include <linux/sockios.h>  
+    #include <sys/socket.h>  
+    #include <sys/ioctl.h>  
+    #include <linux/if.h>  
+    #include <string.h>  
+    #include <stdio.h>  
+    #include <stdlib.h>  
+    #include <unistd.h>  
+      
+    #define ETHTOOL_GLINK        0x0000000a /* Get link status (ethtool_value) */  
 
-//  #define BUFFER_LENGTH_TASK3 2041
-//  static uint8_t send_Task3_MavBuf[BUFFER_LENGTH_TASK3];
-//  uint16_t  len_task3;
-//  const char path[3][38]={
-//  	"/home/pi/mode1/shell/pingtarget.sh",
-//  	"/home/pi/mode1/shell/pingMaster.sh",
-//  	"/home/pi/mode1/shell/pingSlave.sh",
-//  };
+    #define ETH0_UP 1
+    #define USB0_UP 2
+    #define NOT_LINK 3
+
+    #define IFSTATUS_UP 0
+    #define IFSTATUS_DOWN 1
+      
+    typedef signed int u32;  
+
+  // const unsigned  int ETH0_UP=2;
+  // const unsigned int USB0_UP=3;
+  // const unsigned int NOT_LINK=4;
+ 
+        FILE *fp0_task2;  
+        FILE *fp1_task2;  
+//        interface_status_t status;  
+        char buf_task2[512] = {'\0'};  
+        char buf0_task2[512] = {'\0'};  
+      //  char hw_name[10] = {'\0'};       char buf_task2[512] = {'\0'};   
+      //  char *token = NULL;  
+
+       char carrier_path[512] = {'\0'};  
+ // ==========
+    int FlagEth0Uped=0;
+    int FlagUsb0Uped=0;
+      
+    /* for passing single values */  
+    struct ethtool_value  
+    {  
+        u32    cmd;  
+        u32    data;  
+    };  
+
+      unsigned  int flag_eth0=0xcc;
+      unsigned int  flag_usb0=0xcc;
+      unsigned int flag_network;
 
 #endif

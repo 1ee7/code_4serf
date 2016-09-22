@@ -129,6 +129,7 @@ void serialFlush (const int fd)
  *********************************************************************************
  */
 
+
 void serialClose (const int fd)
 {
   close (fd) ;
