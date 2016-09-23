@@ -36,3 +36,4 @@ extern int   serialGetchar   (const int fd) ;
 #ifdef __cplusplus
 }
 #endif
+

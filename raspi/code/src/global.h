@@ -23,7 +23,10 @@ extern void task1_MavData(mavlink_message_t mav_smesg, mavlink_status_t mav_ssta
 
 #endif
 
- extern const int fd1;
-
-
+ //extern const int fd1;
+ extern int fd1;
+ extern int udpsock;
+ extern struct sockaddr_in gcAddr;
+ extern struct sockaddr_in locAddr;
+ extern int udpsock;
 #endif

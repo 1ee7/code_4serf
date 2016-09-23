@@ -6,6 +6,11 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include "global.h"
+
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+
 #include "../lib/mavlink/1.0/common/mavlink.h"
 #include "../lib/mavlink/1.0/mavlink_helpers.h"
 // #include "task1_mavdata.h"

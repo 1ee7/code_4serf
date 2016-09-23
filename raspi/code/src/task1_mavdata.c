@@ -5,6 +5,7 @@
 #include "../lib/mavlink/1.0/mavlink_helpers.h"
 
 
+
 int udpinit(char *target_addr,struct sockaddr_in *a, struct sockaddr_in *b)  //a---gcAddr   b---locAddr
 {
    char toip[100];
@@ -52,10 +53,16 @@ int udpinit(char *target_addr,struct sockaddr_in *a, struct sockaddr_in *b)  //a
 void task1_MavData(mavlink_message_t mav_smesg, mavlink_status_t mav_sstat)
 {
     int i;
+    //=====================
+      // mavlink_msg_heartbeat_pack(1, 200, &mav_smesg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
+      //   uint16_t  len_debug= mavlink_msg_to_send_buffer(sendbuf, &mav_smesg);
+      //      sendto(udpsock, sendbuf, len_debug, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
+    
+//    printf("tgl debug task1 is runing\n");
     while (serialDataAvail (fd1))      
     {
          uint8_t byte=serialGetchar(fd1);
-         //printf("tgl debug the char is %x \n",byte);
+//         printf("tgl debug the char is %x \n",byte);
         // if(mavlink_parse_char(chan,byte,&mav_smesg,&mav_sstat))
           if(mavlink_parse_char(0,byte,&mav_smesg,&mav_sstat))
          {
